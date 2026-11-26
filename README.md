@@ -13,6 +13,12 @@ change the "Haier" text and the picture.
 
 > ℹ️ The dashboard labels are in Spanish. They are plain text in the YAML, easy to translate.
 
+<p align="center">
+  <img src="docs/img/dashboard-control.png" alt="Header, thermostat and controls" width="760"><br>
+  <img src="docs/img/dashboard-programs.png" alt="Smart programs" width="760"><br>
+  <img src="docs/img/dashboard-energy.png" alt="Options, energy and status" width="760">
+</p>
+
 ## ✨ Features
 
 - **Header** with unit picture, status (On/Off · mode), ON/OFF button and unit details.

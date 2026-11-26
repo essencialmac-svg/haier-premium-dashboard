@@ -11,6 +11,12 @@ cambia el texto «Haier» y la imagen.
 > Proyecto no oficial. No está afiliado ni respaldado por Haier. «Haier» se usa solo para indicar el
 > aparato con el que se ha probado.
 
+<p align="center">
+  <img src="docs/img/dashboard-control.png" alt="Cabecera, termostato y controles" width="760"><br>
+  <img src="docs/img/dashboard-programs.png" alt="Programas inteligentes" width="760"><br>
+  <img src="docs/img/dashboard-energy.png" alt="Opciones, energía y estado" width="760">
+</p>
+
 ## ✨ Qué incluye
 
 - **Cabecera** con imagen del split, estado (Encendido/Apagado · modo), botón ON/OFF y ficha del equipo.

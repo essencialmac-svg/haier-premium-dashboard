@@ -7,5 +7,6 @@
   modos, velocidad del ventilador animada, oscilación, programas inteligentes, funciones IR rápidas,
   energía y consumo, estado en tiempo real y programación.
 - 6 scripts: UV + Frío, Dormir, Turbo Frío, ECO, Secar y Ventilar.
+- Capturas del panel en `docs/img/`.
 - Imagen genérica del split (`www/haier/haier_split_dashboard.png`), sin marca.
 - Documentación: instalación, entidades y aprendizaje de códigos Broadlink.
