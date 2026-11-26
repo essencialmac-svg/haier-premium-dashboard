@@ -12,9 +12,7 @@ cambia el texto «Haier» y la imagen.
 > aparato con el que se ha probado.
 
 <p align="center">
-  <img src="docs/img/dashboard-control.png" alt="Cabecera, termostato y controles" width="760"><br>
-  <img src="docs/img/dashboard-programs.png" alt="Programas inteligentes" width="760"><br>
-  <img src="docs/img/dashboard-energy.png" alt="Opciones, energía y estado" width="760">
+  <img src="docs/img/dashboard.png" alt="Haier Premium Dashboard" width="900">
 </p>
 
 ## ✨ Qué incluye
