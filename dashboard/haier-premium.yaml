@@ -1,0 +1,1576 @@
+# =====================================================================
+#  Haier Premium Dashboard para Home Assistant
+#  https://github.com/essencialmac-svg/haier-premium-dashboard
+#
+#  Antes de pegar, sustituye estos marcadores (Buscar y reemplazar):
+#    climate.TU_AIRE            -> tu entidad climate (SmartIR)
+#    remote.TU_BROADLINK        -> tu mando Broadlink (remote.xxx)
+#    switch.TU_ENCHUFE          -> enchufe con medición (opcional)
+#    sensor.TU_CONSUMO_ACTUAL   -> potencia actual en W (opcional)
+#    sensor.TU_CONSUMO_HOY      -> energía de hoy en kWh (opcional)
+#    sensor.TU_CONSUMO_MES      -> energía del mes en kWh (opcional)
+#  y en la tarjeta de cabecera: TU-MODELO, TU-NUMERO-DE-SERIE y fechas.
+#
+#  "Haier" (device: Haier) es el nombre del dispositivo con el que
+#  aprendiste los códigos IR en el Broadlink. Ver docs/BROADLINK.md
+#
+#  Requiere: button-card (HACS). Ver docs/INSTALLATION.md
+# =====================================================================
+title: Haier Premium
+views:
+- type: sections
+  max_columns: 4
+  title: Haier-Premium
+  path: haier-premium
+  icon: mdi:air-conditioner
+  sections:
+  - type: grid
+    column_span: 4
+    cards:
+    - type: vertical-stack
+      cards:
+      - type: custom:button-card
+        entity: climate.TU_AIRE
+        show_icon: false
+        show_name: false
+        show_label: false
+        tap_action:
+          action: more-info
+        styles:
+          card:
+          - border-radius: 26px
+          - padding: 18px
+          - color: white
+          - overflow: hidden
+          - background: |
+              [[[
+                const s = entity.state;
+                if (s === 'heat') return 'linear-gradient(135deg,#24120a 0%,#123049 45%,#05253c 100%)';
+                if (s === 'dry') return 'linear-gradient(135deg,#071f34 0%,#063c50 45%,#052136 100%)';
+                if (s === 'fan_only') return 'linear-gradient(135deg,#071f34 0%,#0b4a47 45%,#052136 100%)';
+                if (s === 'off') return 'linear-gradient(135deg,#1f2b38 0%,#172332 55%,#0c1520 100%)';
+                return 'linear-gradient(135deg,#061a2d 0%,#063d63 45%,#052136 100%)';
+              ]]]
+          - border: 1px solid rgba(100,180,255,.25)
+          - box-shadow: 0 16px 45px rgba(0,0,0,.48)
+          grid:
+          - grid-template-areas: '''pic title power'' ''pic state mini'' ''info info info'''
+          - grid-template-columns: minmax(368px, 48%) 1fr 58px
+          - grid-template-rows: min-content min-content min-content
+          - gap: 8px 14px
+          custom_fields:
+            pic:
+            - align-self: center
+            title:
+            - justify-self: start
+            - align-self: end
+            state:
+            - justify-self: start
+            - align-self: start
+            power:
+            - justify-self: end
+            - align-self: start
+            mini:
+            - justify-self: end
+            - align-self: center
+            info:
+            - margin-top: 14px
+        custom_fields:
+          pic: |
+            [[[
+              return `<div class="ac-photo">
+                <img src="/local/haier/haier_split_dashboard.png" alt="Aire acondicionado">
+              </div>`;
+            ]]]
+          title: |
+            [[[
+              return `<div class="brand">Haier</div><div class="name">Aire Dormitorio</div>`;
+            ]]]
+          state: |
+            [[[
+              const on = entity.state !== 'off';
+              const mode = {cool:'Frío',heat:'Calor',dry:'Seco',fan_only:'Ventilador',off:'Apagado'}[entity.state] ?? entity.state;
+              return `<div class="status"><span class="dot ${on ? 'on' : 'off'}"></span>${on ? 'Encendido' : 'Apagado'} <span class="sep">|</span> ${mode}</div>`;
+            ]]]
+          power:
+            card:
+              type: custom:button-card
+              entity: climate.TU_AIRE
+              icon: mdi:power
+              show_name: true
+              name: |
+                [[[
+                  const e = states['climate.TU_AIRE'];
+                  return e && e.state === 'off' ? 'ON' : 'OFF';
+                ]]]
+              tap_action:
+                action: call-service
+                service: |
+                  [[[
+                    const e = states['climate.TU_AIRE'];
+                    return e && e.state === 'off' ? 'climate.set_hvac_mode' : 'climate.turn_off';
+                  ]]]
+                target:
+                  entity_id: climate.TU_AIRE
+                data: |
+                  [[[
+                    const e = states['climate.TU_AIRE'];
+                    return e && e.state === 'off' ? {hvac_mode: 'cool'} : {};
+                  ]]]
+              styles:
+                card:
+                - width: 54px
+                - height: 54px
+                - border-radius: 18px
+                - background: |
+                    [[[
+                      const e = states['climate.TU_AIRE'];
+                      return e && e.state === 'off'
+                        ? 'rgba(255,255,255,.12)'
+                        : 'linear-gradient(135deg,#1688ff,#006cff)';
+                    ]]]
+                - border: 1px solid rgba(255,255,255,.18)
+                - box-shadow: 0 8px 20px rgba(0,0,0,.35)
+                icon:
+                - color: white
+                - width: 28px
+                name:
+                - color: white
+                - font-size: 10px
+                - font-weight: 800
+                - margin-top: -4px
+          mini: |
+            [[[
+              return `<div class="mini"><ha-icon icon="mdi:wifi"></ha-icon><ha-icon icon="mdi:leaf"></ha-icon><ha-icon icon="mdi:snowflake"></ha-icon></div>`;
+            ]]]
+          info: |
+            [[[
+              return `<div class="info-grid">
+                <div><ha-icon icon="mdi:tag-outline"></ha-icon><span>Modelo</span><b>TU-MODELO</b></div>
+                <div><ha-icon icon="mdi:barcode-scan"></ha-icon><span>Serie</span><b>TU-NUMERO-DE-SERIE</b></div>
+                <div><ha-icon icon="mdi:calendar-check"></ha-icon><span>Comprado</span><b>1 ene 2025</b></div>
+                <div><ha-icon icon="mdi:calendar-star"></ha-icon><span>Registrado</span><b>1 ene 2025</b></div>
+              </div>`;
+            ]]]
+        extra_styles: |
+          .brand { color:#2d9cff; font-weight:900; font-size:22px; line-height:22px; }
+          .name { font-size:32px; font-weight:900; margin-top:5px; letter-spacing:-.8px; }
+          .status { color:rgba(255,255,255,.82); font-size:16px; display:flex; align-items:center; gap:8px; }
+          .dot { width:11px; height:11px; border-radius:50%; display:inline-block; }
+          .dot.on { background:#4ce37b; box-shadow:0 0 12px rgba(76,227,123,.8); }
+          .dot.off { background:#8a929a; }
+          .sep { color:rgba(255,255,255,.45); margin:0 4px; }
+          .ac-photo { position:relative; width:115%; max-width:644px; min-width:299px; margin:0 auto; display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 16px 20px rgba(0,0,0,.42)); }
+          .ac-photo img { display:block; width:100%; height:auto; max-height:253px; object-fit:contain; object-position:center; border-radius:12px; }
+          .mini { display:flex; gap:8px; }
+          .mini ha-icon { width:42px; height:42px; padding:10px; box-sizing:border-box; color:#81d7ff; border-radius:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.13); }
+          .info-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+          .info-grid div { display:grid; grid-template-columns:28px 1fr; grid-template-areas:'i s' 'i b'; column-gap:7px; align-items:center; padding:8px 10px; border-radius:15px; background:rgba(255,255,255,.045); }
+          .info-grid ha-icon { grid-area:i; width:22px; color:#bfd5e7; }
+          .info-grid span { grid-area:s; color:#c7d2df; font-size:13px; }
+          .info-grid b { grid-area:b; color:#eaf4ff; font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+          @media (max-width: 900px) { #container { grid-template-columns:minmax(253px,44%) 1fr 58px !important; } .ac-photo { width:115%; min-width:242px; } .ac-photo img { max-height:190px; } }
+          @media (max-width: 600px) { #container { grid-template-areas:'pic power' 'title title' 'state mini' 'info info' !important; grid-template-columns:1fr 58px !important; } .ac-photo { width:115%; min-width:0; max-width:368px; justify-self:start; } .ac-photo img { max-height:167px; } .info-grid { grid-template-columns:repeat(2,1fr); } .name { font-size:26px; } }
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+        - type: custom:button-card
+          entity: climate.TU_AIRE
+          show_name: false
+          show_icon: false
+          tap_action:
+            action: more-info
+          styles:
+            card:
+            - border-radius: 26px
+            - padding: 24px 18px
+            - color: white
+            - min-height: 330px
+            - background: radial-gradient(circle at 50% 25%, rgba(35,132,210,.42), rgba(5,24,42,.96) 68%)
+            - border: 1px solid rgba(100,180,255,.25)
+            - box-shadow: 0 16px 45px rgba(0,0,0,.45)
+            grid:
+            - grid-template-areas: '''dial'' ''buttons'''
+            - grid-template-rows: 1fr min-content
+          custom_fields:
+            dial: |
+              [[[
+                const e = states['climate.TU_AIRE'];
+                const a = e ? e.attributes : {};
+                const temp = a.temperature ?? '--';
+                const cur = a.current_temperature ?? '--';
+                const hum = a.current_humidity ?? '--';
+                const s = e ? e.state : 'off';
+                const col = s === 'heat' ? '#ff9c38' : s === 'dry' ? '#00d8ff' : s === 'fan_only' ? '#58df83' : s === 'off' ? '#7e8790' : '#238dff';
+                const label = {cool:'Frío',heat:'Calor',dry:'Seco',fan_only:'Ventilador',off:'Apagado'}[s] ?? s;
+                return `<div class="dial-wrap" style="--mode:${col}">
+                  <div class="arc"></div>
+                  <div class="knob"></div>
+                  <div class="dial-text"><div class="small">Temperatura actual</div><div class="current">${cur}<span>&nbsp;&deg;C</span></div><div class="small mode">${label}</div><div class="target">${temp}<span>&nbsp;&deg;C</span></div><div class="hum"><ha-icon icon="mdi:water-percent"></ha-icon> ${hum}%</div></div>
+                </div>`;
+              ]]]
+            buttons:
+              card:
+                type: grid
+                columns: 2
+                square: false
+                cards:
+                - type: custom:button-card
+                  icon: mdi:minus
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: climate.set_temperature
+                    target:
+                      entity_id: climate.TU_AIRE
+                    data:
+                      temperature: |
+                        [[[
+                          const t = states['climate.TU_AIRE'].attributes.temperature || 22;
+                          return Math.max(16, t - 1);
+                        ]]]
+                  styles:
+                    card:
+                    - border-radius: 18px
+                    - height: 50px
+                    - background: rgba(255,255,255,.12)
+                    - border: 1px solid rgba(255,255,255,.14)
+                    icon:
+                    - color: white
+                    - width: 28px
+                - type: custom:button-card
+                  icon: mdi:plus
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: climate.set_temperature
+                    target:
+                      entity_id: climate.TU_AIRE
+                    data:
+                      temperature: |
+                        [[[
+                          const t = states['climate.TU_AIRE'].attributes.temperature || 22;
+                          return Math.min(30, t + 1);
+                        ]]]
+                  styles:
+                    card:
+                    - border-radius: 18px
+                    - height: 50px
+                    - background: rgba(255,255,255,.12)
+                    - border: 1px solid rgba(255,255,255,.14)
+                    icon:
+                    - color: white
+                    - width: 28px
+          extra_styles: |
+            .dial-wrap { position:relative; width:270px; height:270px; margin:0 auto 10px; border-radius:50%; background:radial-gradient(circle at 40% 32%,rgba(255,255,255,.20),rgba(255,255,255,.04) 56%,rgba(0,0,0,.18)); box-shadow:inset 0 0 45px rgba(255,255,255,.10), 0 18px 35px rgba(0,0,0,.28); }
+            .arc { position:absolute; inset:0; border-radius:50%; background:conic-gradient(var(--mode) 0deg 250deg, rgba(255,255,255,.20) 250deg 360deg); -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px)); mask:radial-gradient(farthest-side,transparent calc(100% - 14px),#000 calc(100% - 13px)); }
+            .knob { position:absolute; width:22px; height:22px; border-radius:50%; background:#f5f8ff; left:55px; top:11px; box-shadow:0 3px 10px rgba(0,0,0,.35); }
+            .dial-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+            .small { color:#cdd8e7; font-size:13px; }
+            .current { font-family:'Courier New',Consolas,monospace; font-size:68px; font-weight:800; letter-spacing:-4px; line-height:76px; font-variant-numeric:tabular-nums; text-shadow:0 0 6px rgba(255,255,255,.32),0 0 16px color-mix(in srgb,var(--mode) 60%,transparent); }
+            .current span { font-family:Arial,Helvetica,sans-serif; font-size:25px; margin-left:5px; letter-spacing:0; }
+            .mode { color:var(--mode); margin-top:2px; }
+            .target { font-family:'Courier New',Consolas,monospace; font-size:42px; color:var(--mode); font-weight:800; line-height:48px; font-variant-numeric:tabular-nums; text-shadow:0 0 7px color-mix(in srgb,var(--mode) 80%,transparent); }
+            .target span { font-family:Arial,Helvetica,sans-serif; font-size:19px; margin-left:3px; letter-spacing:0; }
+            .hum { margin-top:4px; font-size:14px; color:#c8d8e9; display:flex; align-items:center; gap:4px; justify-content:center; } .hum ha-icon { width:16px; height:16px; color:#5bb6ff; }
+        - type: vertical-stack
+          cards:
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            styles:
+              card:
+              - border-radius: 26px
+              - padding: 20px
+              - min-height: 330px
+              - color: white
+              - background: linear-gradient(145deg,rgba(5,37,62,.95),rgba(4,24,42,.96))
+              - border: 1px solid rgba(100,180,255,.25)
+              - box-shadow: 0 16px 45px rgba(0,0,0,.45)
+              grid:
+              - grid-template-areas: '''modes'' ''fan'' ''swing'''
+              - gap: 14px
+            custom_fields:
+              modes:
+                card:
+                  type: vertical-stack
+                  cards:
+                  - type: custom:button-card
+                    name: Modo
+                    show_icon: false
+                    styles:
+                      card:
+                      - background: none
+                      - box-shadow: none
+                      - padding: 0
+                      name:
+                      - justify-self: start
+                      - color: white
+                      - font-size: 17px
+                  - type: grid
+                    columns: 5
+                    square: false
+                    cards:
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: 'Off'
+                      icon: mdi:power
+                      tap_action:
+                        action: call-service
+                        service: climate.turn_off
+                        target:
+                          entity_id: climate.TU_AIRE
+                      styles:
+                        card:
+                        - border-radius: 16px
+                        - height: 78px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#d8e2ee'
+                        name:
+                        - color: '#d8e2ee'
+                        - font-size: 13px
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Frío
+                      icon: mdi:snowflake
+                      tap_action:
+                        action: call-service
+                        service: climate.set_hvac_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          hvac_mode: cool
+                      styles:
+                        card:
+                        - border-radius: 16px
+                        - height: 78px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#d8e2ee'
+                        name:
+                        - color: '#d8e2ee'
+                        - font-size: 13px
+                      state:
+                      - value: cool
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#1688ff,#006cff)
+                          - box-shadow: 0 0 20px rgba(30,136,255,.45)
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Seco
+                      icon: mdi:water-outline
+                      tap_action:
+                        action: call-service
+                        service: climate.set_hvac_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          hvac_mode: dry
+                      styles:
+                        card:
+                        - border-radius: 16px
+                        - height: 78px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#d8e2ee'
+                        name:
+                        - color: '#d8e2ee'
+                        - font-size: 13px
+                      state:
+                      - value: dry
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#00b8d8,#006477)
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Calor
+                      icon: mdi:white-balance-sunny
+                      tap_action:
+                        action: call-service
+                        service: climate.set_hvac_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          hvac_mode: heat
+                      styles:
+                        card:
+                        - border-radius: 16px
+                        - height: 78px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#d8e2ee'
+                        name:
+                        - color: '#d8e2ee'
+                        - font-size: 13px
+                      state:
+                      - value: heat
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#ff9c38,#e34f12)
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Vent.
+                      icon: mdi:fan
+                      tap_action:
+                        action: call-service
+                        service: climate.set_hvac_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          hvac_mode: fan_only
+                      styles:
+                        card:
+                        - border-radius: 16px
+                        - height: 78px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#d8e2ee'
+                        name:
+                        - color: '#d8e2ee'
+                        - font-size: 13px
+                      state:
+                      - value: fan_only
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#43d976,#0a8754)
+              fan:
+                card:
+                  type: vertical-stack
+                  cards:
+                  - type: custom:button-card
+                    name: Velocidad del ventilador
+                    show_icon: false
+                    styles:
+                      card:
+                      - background: none
+                      - box-shadow: none
+                      - padding: 0
+                      name:
+                      - justify-self: start
+                      - color: white
+                      - font-size: 17px
+                  - type: custom:button-card
+                    entity: climate.TU_AIRE
+                    name: |
+                      [[[
+                        const e = states['climate.TU_AIRE'];
+                        const fm = e?.attributes?.fan_mode ?? 'auto';
+                        const map = {low:'Caudal bajo', mid:'Caudal medio', high:'Caudal alto', auto:'Caudal automático'};
+                        return map[fm] ?? fm;
+                      ]]]
+                    label: |
+                      [[[
+                        const e = states['climate.TU_AIRE'];
+                        const on = e && e.state !== 'off';
+                        const fm = e?.attributes?.fan_mode ?? '--';
+                        const map = {low:'Baja',mid:'Media',high:'Alta',auto:'Auto'};
+                        return on ? `Velocidad ${map[fm] ?? fm}` : 'Ventilador parado';
+                      ]]]
+                    show_label: true
+                    icon: mdi:fan
+                    custom_fields:
+                      speed: |
+                        [[[
+                          const e = states['climate.TU_AIRE'];
+                          const on = e && e.state !== 'off';
+                          const fm = e?.attributes?.fan_mode ?? 'auto';
+                          const count = !on ? 0 : ({low:1,mid:2,high:4,auto:3}[fm] ?? 2);
+                          return `<div class="fan-meter">${[1,2,3,4].map(i =>
+                            `<span class="${i <= count ? 'active' : ''}"></span>`).join('')}</div>`;
+                        ]]]
+                    styles:
+                      card:
+                      - border-radius: 20px
+                      - height: 104px
+                      - padding: 12px 16px
+                      - overflow: hidden
+                      - background: linear-gradient(135deg,rgba(22,136,255,.22),rgba(0,216,255,.09))
+                      - border: 1px solid rgba(120,200,255,.25)
+                      - box-shadow: inset 0 0 28px rgba(60,170,255,.12), 0 9px 25px rgba(0,0,0,.28)
+                      grid:
+                      - grid-template-areas: '''i n'' ''i l'' ''i speed'''
+                      - grid-template-columns: 74px 1fr
+                      - grid-template-rows: 1fr 1fr 16px
+                      icon:
+                      - color: |
+                          [[[
+                            const e = states['climate.TU_AIRE'];
+                            if (!e || e.state === 'off') return '#7e8790';
+                            if (e.state === 'heat') return '#ff9c38';
+                            if (e.state === 'dry') return '#00d8ff';
+                            if (e.state === 'fan_only') return '#58df83';
+                            return '#5bb6ff';
+                          ]]]
+                      - width: 58px
+                      - padding: 7px
+                      - border-radius: 50%
+                      - background: rgba(0,40,75,.22)
+                      - border: 1px solid rgba(130,215,255,.22)
+                      - filter: |
+                          [[[
+                            const e = states['climate.TU_AIRE'];
+                            return e && e.state !== 'off'
+                              ? 'drop-shadow(0 0 8px rgba(91,182,255,.9)) drop-shadow(0 0 18px rgba(0,145,255,.55))'
+                              : 'none';
+                          ]]]
+                      - animation: |
+                          [[[
+                            const e = states['climate.TU_AIRE'];
+                            if (!e || e.state === 'off') return 'none';
+                            const fm = e.attributes?.fan_mode;
+                            if (fm === 'low') return 'haier_fan_spin 4.2s linear infinite';
+                            if (fm === 'mid') return 'haier_fan_spin 2.35s linear infinite';
+                            if (fm === 'high') return 'haier_fan_spin .95s linear infinite';
+                            if (fm === 'auto') return 'haier_fan_spin 1.75s linear infinite';
+                            return 'haier_fan_spin 2.5s linear infinite';
+                          ]]]
+                      name:
+                      - color: white
+                      - justify-self: start
+                      - align-self: end
+                      - font-size: 17px
+                      - font-weight: 750
+                      label:
+                      - color: '#9fd8ff'
+                      - justify-self: start
+                      - align-self: start
+                      - font-size: 13px
+                      custom_fields:
+                        speed:
+                        - justify-self: stretch
+                        - align-self: center
+                    extra_styles: |
+                      @keyframes haier_fan_spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                      }
+                      .fan-meter {
+                        display:grid;
+                        grid-template-columns:repeat(4,1fr);
+                        gap:6px;
+                        width:100%;
+                        max-width:190px;
+                      }
+                      .fan-meter span {
+                        height:5px;
+                        border-radius:999px;
+                        background:rgba(150,185,210,.18);
+                        border:1px solid rgba(180,220,245,.10);
+                        transition:all .25s ease;
+                      }
+                      .fan-meter span.active {
+                        background:linear-gradient(90deg,#2a9cff,#5fe4ff);
+                        border-color:rgba(130,230,255,.45);
+                        box-shadow:0 0 8px rgba(70,190,255,.65);
+                      }
+                  - type: grid
+                    columns: 4
+                    square: false
+                    cards:
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Low
+                      icon: mdi:fan-speed-1
+                      tap_action:
+                        action: call-service
+                        service: climate.set_fan_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          fan_mode: low
+                      styles:
+                        card:
+                        - border-radius: 15px
+                        - height: 52px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#bcd1e5'
+                        name:
+                        - color: '#bcd1e5'
+                        - font-size: 12px
+                      state:
+                      - operator: template
+                        value: '[[[ const e = states[''climate.TU_AIRE'']; return e && e.attributes.fan_mode === ''low''; ]]]'
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#1688ff,#006cff)
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Mid
+                      icon: mdi:fan-speed-2
+                      tap_action:
+                        action: call-service
+                        service: climate.set_fan_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          fan_mode: mid
+                      styles:
+                        card:
+                        - border-radius: 15px
+                        - height: 52px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#bcd1e5'
+                        name:
+                        - color: '#bcd1e5'
+                        - font-size: 12px
+                      state:
+                      - operator: template
+                        value: '[[[ const e = states[''climate.TU_AIRE'']; return e && e.attributes.fan_mode === ''mid''; ]]]'
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#1688ff,#006cff)
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: High
+                      icon: mdi:fan-speed-3
+                      tap_action:
+                        action: call-service
+                        service: climate.set_fan_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          fan_mode: high
+                      styles:
+                        card:
+                        - border-radius: 15px
+                        - height: 52px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#bcd1e5'
+                        name:
+                        - color: '#bcd1e5'
+                        - font-size: 12px
+                      state:
+                      - operator: template
+                        value: '[[[ const e = states[''climate.TU_AIRE'']; return e && e.attributes.fan_mode === ''high''; ]]]'
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#1688ff,#006cff)
+                    - type: custom:button-card
+                      entity: climate.TU_AIRE
+                      name: Auto
+                      icon: mdi:fan-auto
+                      tap_action:
+                        action: call-service
+                        service: climate.set_fan_mode
+                        target:
+                          entity_id: climate.TU_AIRE
+                        data:
+                          fan_mode: auto
+                      styles:
+                        card:
+                        - border-radius: 15px
+                        - height: 52px
+                        - background: rgba(255,255,255,.06)
+                        - border: 1px solid rgba(255,255,255,.10)
+                        icon:
+                        - color: '#bcd1e5'
+                        name:
+                        - color: '#bcd1e5'
+                        - font-size: 12px
+                      state:
+                      - operator: template
+                        value: '[[[ const e = states[''climate.TU_AIRE'']; return e && e.attributes.fan_mode === ''auto''; ]]]'
+                        styles:
+                          card:
+                          - background: linear-gradient(135deg,#1688ff,#006cff)
+              swing:
+                card:
+                  type: vertical-stack
+                  cards:
+                  - type: custom:button-card
+                    name: Dirección del aire
+                    show_icon: false
+                    styles:
+                      card:
+                      - background: none
+                      - box-shadow: none
+                      - padding: 0
+                      name:
+                      - justify-self: start
+                      - color: white
+                      - font-size: 17px
+                  - type: grid
+                    columns: 2
+                    square: false
+                    cards:
+                    - type: custom:button-card
+                      name: Vertical
+                      icon: mdi:swap-vertical
+                      tap_action:
+                        action: call-service
+                        service: remote.send_command
+                        target:
+                          entity_id: remote.TU_BROADLINK
+                        data:
+                          device: Haier
+                          command: swing_vertical
+                      styles:
+                        card:
+                        - border-radius: 15px
+                        - height: 54px
+                        - background: linear-gradient(135deg,rgba(22,136,255,.75),rgba(0,108,255,.75))
+                        - border: 1px solid rgba(255,255,255,.18)
+                        icon:
+                        - color: white
+                        name:
+                        - color: white
+                        - font-size: 15px
+                    - type: custom:button-card
+                      name: Horizontal
+                      icon: mdi:swap-horizontal
+                      tap_action:
+                        action: call-service
+                        service: remote.send_command
+                        target:
+                          entity_id: remote.TU_BROADLINK
+                        data:
+                          device: Haier
+                          command: swing_horizontal
+                      styles:
+                        card:
+                        - border-radius: 15px
+                        - height: 54px
+                        - background: linear-gradient(135deg,rgba(22,136,255,.75),rgba(0,108,255,.75))
+                        - border: 1px solid rgba(255,255,255,.18)
+                        icon:
+                        - color: white
+                        name:
+                        - color: white
+                        - font-size: 15px
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        styles:
+          card:
+          - border-radius: 24px
+          - padding: 16px
+          - background: linear-gradient(145deg,rgba(5,37,62,.96),rgba(4,24,42,.96))
+          - border: 1px solid rgba(100,180,255,.25)
+          - color: white
+          - box-shadow: 0 14px 40px rgba(0,0,0,.40)
+          grid:
+          - grid-template-areas: '''title'' ''programs'''
+          - gap: 12px
+        custom_fields:
+          title: |
+            <div style="display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;">
+              <ha-icon icon="mdi:creation-outline" style="width:24px;color:#5bb6ff;"></ha-icon>
+              Programas inteligentes
+            </div>
+          programs:
+            card:
+              type: grid
+              columns: 3
+              square: false
+              cards:
+              - type: custom:button-card
+                name: UV + Frío
+                label: 22°C · Baja · Health · Noche
+                show_label: true
+                icon: mdi:shield-sun-outline
+                tap_action:
+                  action: call-service
+                  service: script.haier_uv_frio
+                styles:
+                  card:
+                  - border-radius: 20px
+                  - height: 105px
+                  - padding: 13px
+                  - background: linear-gradient(145deg,rgba(22,136,255,.30),rgba(5,28,48,.96))
+                  - border: 1px solid rgba(110,195,255,.28)
+                  - box-shadow: 0 10px 28px rgba(0,0,0,.32), inset 0 0 22px rgba(91,182,255,.10)
+                  - transition: transform .16s ease, box-shadow .16s ease
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 42px 1fr
+                  - grid-template-rows: 1fr 1fr
+                  icon:
+                  - color: white
+                  - width: 34px
+                  - filter: drop-shadow(0 0 10px rgba(91,182,255,.70))
+                  name:
+                  - color: white
+                  - justify-self: start
+                  - align-self: end
+                  - font-size: 15px
+                  - font-weight: 800
+                  label:
+                  - color: '#9fd8ff'
+                  - justify-self: start
+                  - align-self: start
+                  - font-size: 11px
+              - type: custom:button-card
+                name: Dormir
+                label: 25°C · Auto · Sleep · Quiet
+                show_label: true
+                icon: mdi:weather-night
+                tap_action:
+                  action: call-service
+                  service: script.haier_dormir
+                styles:
+                  card:
+                  - border-radius: 20px
+                  - height: 105px
+                  - padding: 13px
+                  - background: linear-gradient(145deg,rgba(22,136,255,.30),rgba(5,28,48,.96))
+                  - border: 1px solid rgba(110,195,255,.28)
+                  - box-shadow: 0 10px 28px rgba(0,0,0,.32), inset 0 0 22px rgba(91,182,255,.10)
+                  - transition: transform .16s ease, box-shadow .16s ease
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 42px 1fr
+                  - grid-template-rows: 1fr 1fr
+                  icon:
+                  - color: white
+                  - width: 34px
+                  - filter: drop-shadow(0 0 10px rgba(91,182,255,.70))
+                  name:
+                  - color: white
+                  - justify-self: start
+                  - align-self: end
+                  - font-size: 15px
+                  - font-weight: 800
+                  label:
+                  - color: '#9fd8ff'
+                  - justify-self: start
+                  - align-self: start
+                  - font-size: 11px
+              - type: custom:button-card
+                name: Turbo Frío
+                label: 18°C · High · Turbo · Swing
+                show_label: true
+                icon: mdi:rocket-launch-outline
+                tap_action:
+                  action: call-service
+                  service: script.haier_turbo_frio
+                styles:
+                  card:
+                  - border-radius: 20px
+                  - height: 105px
+                  - padding: 13px
+                  - background: linear-gradient(145deg,rgba(22,136,255,.30),rgba(5,28,48,.96))
+                  - border: 1px solid rgba(110,195,255,.28)
+                  - box-shadow: 0 10px 28px rgba(0,0,0,.32), inset 0 0 22px rgba(91,182,255,.10)
+                  - transition: transform .16s ease, box-shadow .16s ease
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 42px 1fr
+                  - grid-template-rows: 1fr 1fr
+                  icon:
+                  - color: white
+                  - width: 34px
+                  - filter: drop-shadow(0 0 10px rgba(91,182,255,.70))
+                  name:
+                  - color: white
+                  - justify-self: start
+                  - align-self: end
+                  - font-size: 15px
+                  - font-weight: 800
+                  label:
+                  - color: '#9fd8ff'
+                  - justify-self: start
+                  - align-self: start
+                  - font-size: 11px
+              - type: custom:button-card
+                name: ECO
+                label: 26°C · Auto · Eco
+                show_label: true
+                icon: mdi:leaf
+                tap_action:
+                  action: call-service
+                  service: script.haier_eco
+                styles:
+                  card:
+                  - border-radius: 20px
+                  - height: 105px
+                  - padding: 13px
+                  - background: linear-gradient(145deg,rgba(22,136,255,.30),rgba(5,28,48,.96))
+                  - border: 1px solid rgba(110,195,255,.28)
+                  - box-shadow: 0 10px 28px rgba(0,0,0,.32), inset 0 0 22px rgba(91,182,255,.10)
+                  - transition: transform .16s ease, box-shadow .16s ease
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 42px 1fr
+                  - grid-template-rows: 1fr 1fr
+                  icon:
+                  - color: white
+                  - width: 34px
+                  - filter: drop-shadow(0 0 10px rgba(91,182,255,.70))
+                  name:
+                  - color: white
+                  - justify-self: start
+                  - align-self: end
+                  - font-size: 15px
+                  - font-weight: 800
+                  label:
+                  - color: '#9fd8ff'
+                  - justify-self: start
+                  - align-self: start
+                  - font-size: 11px
+              - type: custom:button-card
+                name: Secar
+                label: Dry · 24°C · Low
+                show_label: true
+                icon: mdi:water-percent
+                tap_action:
+                  action: call-service
+                  service: script.haier_secar
+                styles:
+                  card:
+                  - border-radius: 20px
+                  - height: 105px
+                  - padding: 13px
+                  - background: linear-gradient(145deg,rgba(22,136,255,.30),rgba(5,28,48,.96))
+                  - border: 1px solid rgba(110,195,255,.28)
+                  - box-shadow: 0 10px 28px rgba(0,0,0,.32), inset 0 0 22px rgba(91,182,255,.10)
+                  - transition: transform .16s ease, box-shadow .16s ease
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 42px 1fr
+                  - grid-template-rows: 1fr 1fr
+                  icon:
+                  - color: white
+                  - width: 34px
+                  - filter: drop-shadow(0 0 10px rgba(91,182,255,.70))
+                  name:
+                  - color: white
+                  - justify-self: start
+                  - align-self: end
+                  - font-size: 15px
+                  - font-weight: 800
+                  label:
+                  - color: '#9fd8ff'
+                  - justify-self: start
+                  - align-self: start
+                  - font-size: 11px
+              - type: custom:button-card
+                name: Ventilar
+                label: Fan only · Mid · Swing
+                show_label: true
+                icon: mdi:fan
+                tap_action:
+                  action: call-service
+                  service: script.haier_ventilar
+                styles:
+                  card:
+                  - border-radius: 20px
+                  - height: 105px
+                  - padding: 13px
+                  - background: linear-gradient(145deg,rgba(22,136,255,.30),rgba(5,28,48,.96))
+                  - border: 1px solid rgba(110,195,255,.28)
+                  - box-shadow: 0 10px 28px rgba(0,0,0,.32), inset 0 0 22px rgba(91,182,255,.10)
+                  - transition: transform .16s ease, box-shadow .16s ease
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 42px 1fr
+                  - grid-template-rows: 1fr 1fr
+                  icon:
+                  - color: white
+                  - width: 34px
+                  - filter: drop-shadow(0 0 10px rgba(91,182,255,.70))
+                  name:
+                  - color: white
+                  - justify-self: start
+                  - align-self: end
+                  - font-size: 15px
+                  - font-weight: 800
+                  label:
+                  - color: '#9fd8ff'
+                  - justify-self: start
+                  - align-self: start
+                  - font-size: 11px
+      - type: grid
+        columns: 5
+        square: false
+        cards:
+        - type: custom:button-card
+          name: Turbo
+          label: Activar
+          show_label: true
+          icon: mdi:rocket-launch-outline
+          tap_action:
+            action: call-service
+            service: remote.send_command
+            target:
+              entity_id: remote.TU_BROADLINK
+            data:
+              device: Haier
+              command: turbo
+          styles:
+            card:
+            - border-radius: 20px
+            - height: 92px
+            - padding: 12px
+            - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+            - border: 1px solid rgba(100,180,255,.23)
+            - box-shadow: 0 10px 28px rgba(0,0,0,.35)
+            grid:
+            - grid-template-areas: '''i n'' ''i l'''
+            - grid-template-columns: 38px 1fr
+            - grid-template-rows: 1fr 1fr
+            icon:
+            - color: white
+            - width: 30px
+            name:
+            - color: white
+            - justify-self: start
+            - align-self: end
+            - font-size: 15px
+            label:
+            - color: '#5bb6ff'
+            - justify-self: start
+            - align-self: start
+            - font-size: 12px
+        - type: custom:button-card
+          name: ECO
+          label: Activar
+          show_label: true
+          icon: mdi:leaf
+          tap_action:
+            action: call-service
+            service: remote.send_command
+            target:
+              entity_id: remote.TU_BROADLINK
+            data:
+              device: Haier
+              command: eco
+          styles:
+            card:
+            - border-radius: 20px
+            - height: 92px
+            - padding: 12px
+            - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+            - border: 1px solid rgba(100,180,255,.23)
+            - box-shadow: 0 10px 28px rgba(0,0,0,.35)
+            grid:
+            - grid-template-areas: '''i n'' ''i l'''
+            - grid-template-columns: 38px 1fr
+            - grid-template-rows: 1fr 1fr
+            icon:
+            - color: white
+            - width: 30px
+            name:
+            - color: white
+            - justify-self: start
+            - align-self: end
+            - font-size: 15px
+            label:
+            - color: '#5bb6ff'
+            - justify-self: start
+            - align-self: start
+            - font-size: 12px
+        - type: custom:button-card
+          name: Silencio
+          label: Activar
+          show_label: true
+          icon: mdi:volume-low
+          tap_action:
+            action: call-service
+            service: remote.send_command
+            target:
+              entity_id: remote.TU_BROADLINK
+            data:
+              device: Haier
+              command: quiet
+          styles:
+            card:
+            - border-radius: 20px
+            - height: 92px
+            - padding: 12px
+            - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+            - border: 1px solid rgba(100,180,255,.23)
+            - box-shadow: 0 10px 28px rgba(0,0,0,.35)
+            grid:
+            - grid-template-areas: '''i n'' ''i l'''
+            - grid-template-columns: 38px 1fr
+            - grid-template-rows: 1fr 1fr
+            icon:
+            - color: white
+            - width: 30px
+            name:
+            - color: white
+            - justify-self: start
+            - align-self: end
+            - font-size: 15px
+            label:
+            - color: '#5bb6ff'
+            - justify-self: start
+            - align-self: start
+            - font-size: 12px
+        - type: custom:button-card
+          name: I Feel
+          label: Activar
+          show_label: true
+          icon: mdi:account-outline
+          tap_action:
+            action: call-service
+            service: remote.send_command
+            target:
+              entity_id: remote.TU_BROADLINK
+            data:
+              device: Haier
+              command: i_feel
+          styles:
+            card:
+            - border-radius: 20px
+            - height: 92px
+            - padding: 12px
+            - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+            - border: 1px solid rgba(100,180,255,.23)
+            - box-shadow: 0 10px 28px rgba(0,0,0,.35)
+            grid:
+            - grid-template-areas: '''i n'' ''i l'''
+            - grid-template-columns: 38px 1fr
+            - grid-template-rows: 1fr 1fr
+            icon:
+            - color: white
+            - width: 30px
+            name:
+            - color: white
+            - justify-self: start
+            - align-self: end
+            - font-size: 15px
+            label:
+            - color: '#5bb6ff'
+            - justify-self: start
+            - align-self: start
+            - font-size: 12px
+        - type: custom:button-card
+          name: Anti-Moho
+          label: Self Clean
+          show_label: true
+          icon: mdi:shield-outline
+          tap_action:
+            action: call-service
+            service: remote.send_command
+            target:
+              entity_id: remote.TU_BROADLINK
+            data:
+              device: Haier
+              command: self_clean
+          styles:
+            card:
+            - border-radius: 20px
+            - height: 92px
+            - padding: 12px
+            - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+            - border: 1px solid rgba(100,180,255,.23)
+            - box-shadow: 0 10px 28px rgba(0,0,0,.35)
+            grid:
+            - grid-template-areas: '''i n'' ''i l'''
+            - grid-template-columns: 38px 1fr
+            - grid-template-rows: 1fr 1fr
+            icon:
+            - color: white
+            - width: 30px
+            name:
+            - color: white
+            - justify-self: start
+            - align-self: end
+            - font-size: 15px
+            label:
+            - color: '#5bb6ff'
+            - justify-self: start
+            - align-self: start
+            - font-size: 12px
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        styles:
+          card:
+          - border-radius: 22px
+          - padding: 16px
+          - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+          - border: 1px solid rgba(100,180,255,.23)
+          - color: white
+          - box-shadow: 0 12px 35px rgba(0,0,0,.38)
+          grid:
+          - grid-template-areas: '''title'' ''opts'''
+          - gap: 10px
+        custom_fields:
+          title: <div style="font-size:17px;font-weight:600;">Más opciones</div>
+          opts:
+            card:
+              type: grid
+              columns: 3
+              square: false
+              cards:
+              - type: custom:button-card
+                name: Sleep
+                label: Desactivado
+                show_label: true
+                icon: mdi:weather-night
+                tap_action:
+                  action: call-service
+                  service: remote.send_command
+                  target:
+                    entity_id: remote.TU_BROADLINK
+                  data:
+                    device: Haier
+                    command: sleep
+                styles:
+                  card:
+                  - border-radius: 15px
+                  - height: 72px
+                  - background: rgba(255,255,255,.055)
+                  - border: 1px solid rgba(255,255,255,.10)
+                  - padding: 10px
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 36px 1fr
+                  icon:
+                  - color: '#d7e8ff'
+                  name:
+                  - justify-self: start
+                  - color: white
+                  - font-size: 15px
+                  label:
+                  - justify-self: start
+                  - color: '#9fb3c8'
+                  - font-size: 12px
+              - type: custom:button-card
+                name: Temporizador
+                label: No disponible sin Confirm
+                show_label: true
+                icon: mdi:timer-alert-outline
+                tap_action:
+                  action: none
+                styles:
+                  card:
+                  - border-radius: 15px
+                  - height: 72px
+                  - background: rgba(255,255,255,.055)
+                  - border: 1px solid rgba(255,255,255,.10)
+                  - padding: 10px
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 36px 1fr
+                  icon:
+                  - color: '#d7e8ff'
+                  name:
+                  - justify-self: start
+                  - color: white
+                  - font-size: 15px
+                  label:
+                  - justify-self: start
+                  - color: '#9fb3c8'
+                  - font-size: 12px
+              - type: custom:button-card
+                name: Health
+                label: Health / UV
+                show_label: true
+                icon: mdi:shield-plus-outline
+                tap_action:
+                  action: call-service
+                  service: remote.send_command
+                  target:
+                    entity_id: remote.TU_BROADLINK
+                  data:
+                    device: Haier
+                    command: health
+                styles:
+                  card:
+                  - border-radius: 15px
+                  - height: 72px
+                  - background: rgba(255,255,255,.055)
+                  - border: 1px solid rgba(255,255,255,.10)
+                  - padding: 10px
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 36px 1fr
+                  icon:
+                  - color: '#d7e8ff'
+                  name:
+                  - justify-self: start
+                  - color: white
+                  - font-size: 15px
+                  label:
+                  - justify-self: start
+                  - color: '#9fb3c8'
+                  - font-size: 12px
+              - type: custom:button-card
+                name: Funciones no IR
+                label: WiFi · Extra · Confirm
+                show_label: true
+                icon: mdi:information-outline
+                tap_action:
+                  action: none
+                styles:
+                  card:
+                  - border-radius: 15px
+                  - height: 72px
+                  - background: rgba(255,255,255,.035)
+                  - border: 1px dashed rgba(255,255,255,.16)
+                  - padding: 10px
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 36px 1fr
+                  icon:
+                  - color: '#748ca3'
+                  name:
+                  - justify-self: start
+                  - color: '#a9b8c7'
+                  - font-size: 15px
+                  label:
+                  - justify-self: start
+                  - color: '#748ca3'
+                  - font-size: 12px
+              - type: custom:button-card
+                name: Broadlink
+                label: Conectado
+                show_label: true
+                entity: remote.TU_BROADLINK
+                icon: mdi:remote
+                tap_action:
+                  action: more-info
+                styles:
+                  card:
+                  - border-radius: 15px
+                  - height: 72px
+                  - background: rgba(255,255,255,.055)
+                  - border: 1px solid rgba(255,255,255,.10)
+                  - padding: 10px
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 36px 1fr
+                  icon:
+                  - color: '#d7e8ff'
+                  name:
+                  - justify-self: start
+                  - color: white
+                  - font-size: 15px
+                  label:
+                  - justify-self: start
+                  - color: '#9fb3c8'
+                  - font-size: 12px
+              - type: custom:button-card
+                name: Info
+                label: Más datos
+                show_label: true
+                entity: climate.TU_AIRE
+                icon: mdi:information-outline
+                tap_action:
+                  action: more-info
+                styles:
+                  card:
+                  - border-radius: 15px
+                  - height: 72px
+                  - background: rgba(255,255,255,.055)
+                  - border: 1px solid rgba(255,255,255,.10)
+                  - padding: 10px
+                  grid:
+                  - grid-template-areas: '''i n'' ''i l'''
+                  - grid-template-columns: 36px 1fr
+                  icon:
+                  - color: '#d7e8ff'
+                  name:
+                  - justify-self: start
+                  - color: white
+                  - font-size: 15px
+                  label:
+                  - justify-self: start
+                  - color: '#9fb3c8'
+                  - font-size: 12px
+      - type: custom:button-card
+        entity: switch.TU_ENCHUFE
+        triggers_update:
+        - switch.TU_ENCHUFE
+        - sensor.TU_CONSUMO_ACTUAL
+        - sensor.TU_CONSUMO_HOY
+        - sensor.TU_CONSUMO_MES
+        show_icon: false
+        show_name: false
+        show_label: false
+        tap_action:
+          action: none
+        styles:
+          card:
+          - border-radius: 22px
+          - padding: 18px
+          - color: white
+          - overflow: hidden
+          - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+          - border: 1px solid rgba(100,180,255,.23)
+          - box-shadow: 0 12px 35px rgba(0,0,0,.38)
+          grid:
+          - grid-template-areas: '''title power'' ''metrics metrics'''
+          - grid-template-columns: 1fr 72px
+          - grid-template-rows: min-content min-content
+          - gap: 14px
+          custom_fields:
+            title:
+            - justify-self: start
+            - align-self: center
+            power:
+            - justify-self: end
+            - align-self: center
+            metrics:
+            - width: 100%
+        custom_fields:
+          title: |
+            [[[
+              const sw = states['switch.TU_ENCHUFE'];
+              const on = sw && sw.state === 'on';
+              return `<div class="energy-title">
+                <ha-icon icon="mdi:flash"></ha-icon>
+                <div><b>Energía y consumo</b><span>Enchufe inteligente · ${on ? 'Conectado' : 'Apagado'}</span></div>
+              </div>`;
+            ]]]
+          power:
+            card:
+              type: custom:button-card
+              entity: switch.TU_ENCHUFE
+              show_name: false
+              show_label: false
+              icon: mdi:power
+              tap_action:
+                action: toggle
+              confirmation:
+                text: ¿Cambiar el estado del enchufe del aire acondicionado?
+              styles:
+                card:
+                - width: 58px
+                - height: 58px
+                - border-radius: 18px
+                - background: |
+                    [[[
+                      const sw = states['switch.TU_ENCHUFE'];
+                      return sw && sw.state === 'on'
+                        ? 'linear-gradient(135deg,#1688ff,#006cff)'
+                        : 'rgba(255,255,255,.10)';
+                    ]]]
+                - border: 1px solid rgba(255,255,255,.16)
+                - box-shadow: |
+                    [[[
+                      const sw = states['switch.TU_ENCHUFE'];
+                      return sw && sw.state === 'on'
+                        ? '0 0 22px rgba(22,136,255,.45)'
+                        : '0 8px 20px rgba(0,0,0,.28)';
+                    ]]]
+                icon:
+                - color: white
+                - width: 29px
+          metrics: |
+            [[[
+              const formatSensor = (id, decimals = 2) => {
+                const sensor = states[id];
+                if (!sensor || ['unknown', 'unavailable', 'none', ''].includes(sensor.state)) {
+                  return '--';
+                }
+
+                const numericValue = Number(sensor.state);
+                const unit = sensor.attributes.unit_of_measurement || '';
+
+                if (Number.isNaN(numericValue)) {
+                  return `${sensor.state}${unit ? ' ' + unit : ''}`;
+                }
+
+                const value = new Intl.NumberFormat('es-ES', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: decimals
+                }).format(numericValue);
+
+                return `${value}${unit ? ' ' + unit : ''}`;
+              };
+
+              const currentSensor = states['sensor.TU_CONSUMO_ACTUAL'];
+              const currentPower = currentSensor ? Number(currentSensor.state) : 0;
+              const currentClass = currentPower >= 1500
+                ? 'energy-high'
+                : currentPower >= 800
+                  ? 'energy-medium'
+                  : 'energy-normal';
+
+              return `<div class="energy-grid">
+                <div class="${currentClass}"><ha-icon icon="mdi:lightning-bolt"></ha-icon><span>Consumo actual</span><b>${formatSensor('sensor.TU_CONSUMO_ACTUAL', 1)}</b></div>
+                <div><ha-icon icon="mdi:calendar-today"></ha-icon><span>Consumo hoy</span><b>${formatSensor('sensor.TU_CONSUMO_HOY', 2)}</b></div>
+                <div><ha-icon icon="mdi:calendar-month"></ha-icon><span>Este mes</span><b>${formatSensor('sensor.TU_CONSUMO_MES', 2)}</b></div>
+              </div>`;
+            ]]]
+        extra_styles: |
+          .energy-title { display:flex; align-items:center; gap:12px; }
+          .energy-title > ha-icon { width:34px; height:34px; color:#61baff; padding:9px; border-radius:14px; background:rgba(22,136,255,.14); border:1px solid rgba(100,180,255,.20); box-sizing:content-box; }
+          .energy-title b { display:block; font-size:19px; color:white; }
+          .energy-title span { display:block; margin-top:3px; font-size:13px; color:#9fb3c8; }
+          .energy-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+          .energy-grid div { display:grid; grid-template-columns:36px 1fr; grid-template-areas:'i s' 'i b'; column-gap:9px; align-items:center; padding:13px 14px; border-radius:16px; background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.09); }
+
+          .energy-grid .energy-normal b { color:#eaf4ff; }
+          .energy-grid .energy-medium { border-color:rgba(255,177,64,.38); box-shadow:inset 0 0 22px rgba(255,177,64,.08); }
+          .energy-grid .energy-medium b, .energy-grid .energy-medium ha-icon { color:#ffbd59; }
+          .energy-grid .energy-high { border-color:rgba(255,82,82,.48); box-shadow:inset 0 0 24px rgba(255,82,82,.12), 0 0 18px rgba(255,82,82,.08); }
+          .energy-grid .energy-high b, .energy-grid .energy-high ha-icon { color:#ff6b6b; }
+          .energy-grid ha-icon { grid-area:i; width:27px; color:#7fc9ff; }
+          .energy-grid span { grid-area:s; color:#9fb3c8; font-size:13px; }
+          .energy-grid b { grid-area:b; color:white; font-size:19px; font-weight:800; margin-top:2px; }
+          @media (max-width: 700px) { .energy-grid { grid-template-columns:1fr; } .energy-grid div { min-height:48px; } }
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+        - type: custom:button-card
+          entity: climate.TU_AIRE
+          show_icon: false
+          show_name: false
+          styles:
+            card: &id001
+            - border-radius: 22px
+            - padding: 16px 18px
+            - min-height: 160px
+            - background: linear-gradient(145deg,rgba(6,57,91,.96),rgba(5,28,48,.96))
+            - border: 1px solid rgba(100,180,255,.23)
+            - color: white
+            - box-shadow: 0 12px 35px rgba(0,0,0,.38)
+          custom_fields:
+            content: |
+              [[[
+                const e = states['climate.TU_AIRE'];
+                const a = e ? e.attributes : {};
+                const st = e ? e.state : '--';
+                return `<div class="rt"><div class="h">Estado en tiempo real</div>
+                  <div><span><ha-icon icon="mdi:thermometer"></ha-icon> Temperatura ambiente</span><b>${a.current_temperature ?? '--'} &deg;C</b></div>
+                  <div><span><ha-icon icon="mdi:water-percent"></ha-icon> Humedad ambiente</span><b>${a.current_humidity ?? '--'} %</b></div>
+                  <div><span><ha-icon icon="mdi:fan"></ha-icon> Ventilador</span><b>${a.fan_mode ?? '--'}</b></div>
+                  <div><span><ha-icon icon="mdi:air-conditioner"></ha-icon> Modo</span><b>${st}</b></div>
+                  <small>Actualización según entidad climate</small></div>`;
+              ]]]
+          extra_styles: |
+            .rt .h { font-size:18px; font-weight:700; margin-bottom:12px; }
+            .rt div:not(.h) { display:flex; justify-content:space-between; padding:6px 0; color:#c8d8e9; } .rt span { display:flex; align-items:center; gap:6px; } .rt span ha-icon { width:18px; height:18px; color:#5bb6ff; }
+            .rt b { color:white; font-weight:500; }
+            .rt small { display:block; margin-top:12px; color:#9fb3c8; }
+        - type: custom:button-card
+          show_icon: false
+          show_name: false
+          styles:
+            card: *id001
+          custom_fields:
+            content: |
+              <div class="prog">
+                <div class="h">Programación</div>
+                <div class="row"><ha-icon icon="mdi:calendar-clock"></ha-icon><div><b>Próximo evento</b><span>Sleep · 23:00 · 24°C · Silencio</span></div><ha-icon icon="mdi:chevron-right"></ha-icon></div>
+                <div class="row"><ha-icon icon="mdi:calendar-week"></ha-icon><div><b>Programación semanal</b><span>Activada</span></div><ha-icon icon="mdi:chevron-right"></ha-icon></div>
+              </div>
+          extra_styles: |
+            .prog .h { font-size:18px; font-weight:700; margin-bottom:12px; }
+            .row { display:grid; grid-template-columns:32px 1fr 22px; align-items:center; gap:9px; padding:12px; border-radius:15px; background:rgba(255,255,255,.055); margin-bottom:10px; }
+            .row ha-icon { color:#c8d8e9; width:24px; }
+            .row b { display:block; font-size:15px; }
+            .row span { display:block; color:#9fb3c8; font-size:13px; margin-top:3px; }
+      grid_options:
+        columns: full
+        rows: auto

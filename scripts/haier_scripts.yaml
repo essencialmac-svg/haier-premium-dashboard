@@ -1,0 +1,169 @@
+# =====================================================================
+#  Scripts de los "Programas inteligentes" del Haier Premium Dashboard
+#
+#  Pégalos al final de tu /config/scripts.yaml (o créalos uno a uno en
+#  Ajustes → Automatizaciones y escenas → Scripts → ⋮ → Editar en YAML).
+#
+#  Sustituye:
+#    climate.TU_AIRE      -> tu entidad climate (SmartIR)
+#    remote.TU_BROADLINK  -> tu mando Broadlink
+#  Los comandos IR (uv_frio_noche_baja, sleep, quiet, turbo, eco,
+#  swing_vertical, swing_horizontal) deben estar aprendidos en el
+#  Broadlink con el dispositivo "Haier". Ver docs/BROADLINK.md
+# =====================================================================
+
+haier_uv_frio:
+  alias: "Haier - UV + Frío · Noche · Baja (encendido)"
+  description: >-
+    Programa completo aprendido en un único código IR para evitar
+    múltiples pitidos y estados sobrescritos.
+  mode: single
+  sequence:
+    - action: remote.send_command
+      target:
+        entity_id: remote.TU_BROADLINK
+      data:
+        device: Haier
+        command: uv_frio_noche_baja
+
+haier_dormir:
+  alias: "Haier - Dormir"
+  mode: single
+  sequence:
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        hvac_mode: cool
+    - delay: "00:00:01"
+    - action: climate.set_temperature
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        temperature: 25
+    - delay: "00:00:01"
+    - action: climate.set_fan_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        fan_mode: auto
+    - delay: "00:00:01"
+    - action: remote.send_command
+      target:
+        entity_id: remote.TU_BROADLINK
+      data:
+        device: Haier
+        command:
+          - sleep
+          - quiet
+        delay_secs: 1
+
+haier_turbo_frio:
+  alias: "Haier - Turbo Frío"
+  mode: single
+  sequence:
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        hvac_mode: cool
+    - delay: "00:00:01"
+    - action: climate.set_temperature
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        temperature: 18
+    - delay: "00:00:01"
+    - action: climate.set_fan_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        fan_mode: high
+    - delay: "00:00:01"
+    - action: remote.send_command
+      target:
+        entity_id: remote.TU_BROADLINK
+      data:
+        device: Haier
+        command:
+          - turbo
+          - swing_vertical
+          - swing_horizontal
+        delay_secs: 1
+
+haier_eco:
+  alias: "Haier - Eco"
+  mode: single
+  sequence:
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        hvac_mode: cool
+    - delay: "00:00:01"
+    - action: climate.set_temperature
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        temperature: 26
+    - delay: "00:00:01"
+    - action: climate.set_fan_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        fan_mode: auto
+    - delay: "00:00:01"
+    - action: remote.send_command
+      target:
+        entity_id: remote.TU_BROADLINK
+      data:
+        device: Haier
+        command: eco
+
+haier_secar:
+  alias: "Haier - Secar"
+  mode: single
+  sequence:
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        hvac_mode: dry
+    - delay: "00:00:01"
+    - action: climate.set_temperature
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        temperature: 24
+    - delay: "00:00:01"
+    - action: climate.set_fan_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        fan_mode: low
+
+haier_ventilar:
+  alias: "Haier - Ventilar"
+  mode: single
+  sequence:
+    - action: climate.set_hvac_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        hvac_mode: fan_only
+    - delay: "00:00:01"
+    - action: climate.set_fan_mode
+      target:
+        entity_id: climate.TU_AIRE
+      data:
+        fan_mode: mid
+    - delay: "00:00:01"
+    - action: remote.send_command
+      target:
+        entity_id: remote.TU_BROADLINK
+      data:
+        device: Haier
+        command:
+          - swing_vertical
+          - swing_horizontal
+        delay_secs: 1
