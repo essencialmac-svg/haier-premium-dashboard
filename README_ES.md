@@ -12,7 +12,8 @@ cambia el texto «Haier» y la imagen.
 > aparato con el que se ha probado.
 
 <p align="center">
-  <img src="docs/img/dashboard.png" alt="Haier Premium Dashboard" width="900">
+  <img src="docs/img/dashboard-top.png" alt="Haier Premium Dashboard" width="900"><br>
+  <img src="docs/img/dashboard-bottom.png" alt="Haier Premium Dashboard" width="900">
 </p>
 
 ## ✨ Qué incluye

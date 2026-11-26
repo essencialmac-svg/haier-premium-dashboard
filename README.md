@@ -14,7 +14,8 @@ change the "Haier" text and the picture.
 > ℹ️ The dashboard labels are in Spanish. They are plain text in the YAML, easy to translate.
 
 <p align="center">
-  <img src="docs/img/dashboard.png" alt="Haier Premium Dashboard" width="900">
+  <img src="docs/img/dashboard-top.png" alt="Haier Premium Dashboard" width="900"><br>
+  <img src="docs/img/dashboard-bottom.png" alt="Haier Premium Dashboard" width="900">
 </p>
 
 ## ✨ Features
